@@ -25,16 +25,7 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-late CollectionReference cref;
-
 class _MyHomePageState extends State<MyHomePage> {
-
-  @override
-  void initState() {
-    super.initState();
-    cref = FirebaseFirestore.instance.collection('root');
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -44,19 +35,17 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget buildBody(BuildContext context) {
-    return StreamBuilder<QuerySnapshot>(
-      stream: cref.snapshots(),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) return LinearProgressIndicator();
-
-        print("########## Firestore Access start");
-        snapshot.data!.docs.forEach((elem) {
-          print(elem.id);
-          print(elem.get('email'));
-        });
-        print("########## Firestore Access end");
-
-        return Text('test');
+    return OutlinedButton(
+      child: Text("サブコレクション追加"),
+      onPressed: () async {
+        print("########## onPressed start");
+        CollectionReference cref = FirebaseFirestore.instance.collection('root');
+        QuerySnapshot qs = await cref.get();
+        String nextID = qs.docs.length.toString();
+        print('########## nextID: ' + nextID);
+        cref.doc(nextID).set({'name':'dummy'}); // (1)ドキュメントを作る
+        cref.doc(nextID).collection('sub').doc().set({'email': 'dummy@gmail.com'}); // (2)サブコレクションを作る
+        print("########## onPressed end");
       },
     );
   }
